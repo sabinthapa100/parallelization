@@ -1,29 +1,218 @@
-This is about parallelization -- to acheive performance in the current computing hardwares!
+# Parallelization for Scientific Computing  
+**Author:** Sabin Thapa  
+**Email:** sthapa3@kent.edu  
+**Affiliation:** Kent State University  
+**Status:** Learning, experimentation, and long-term skill development  
+**Primary Reference:** https://education.molssi.org/parallel-programming/
 
-My reference is this: https://education.molssi.org/parallel-programming/
+---
 
+## Motivation
 
-Introduction: What is Parallelization?
+Modern computing performance no longer comes primarily from faster clock speeds. Instead, performance gains arise from **parallel hardware**: multi-core CPUs, many-core GPUs, vector units, and distributed clusters.
 
-Most strategies for speeding up code focus on efficiency—writing better algorithms or using faster languages to reduce the total amount of work a computer has to do. Parallelization takes a different approach: instead of reducing the workload, it divides that work among multiple processing units (CPUs or GPUs) that labor simultaneously.
+This repository is my **hands-on learning space** for understanding and practicing **parallelization**, with a focus on **scientific and physics applications**. The intent is not to chase peak performance immediately, but to **build correct intuition first**, then apply these ideas to real research problems.
 
-Think of it like building a house. A single worker might take a year to finish the job, but ten workers—if managed well—could finish it in a fraction of the time.
+Typical physics use cases motivating this work include:
+- Numerical simulations
+- Monte-Carlo sampling
+- Parameter sweeps
+- Transport equations
+- Lattice-based models
+- Event-by-event calculations
 
-The Core Principles:
-While the concept is simple, the execution involves a few key constraints:
-1. The "Ideal" Speedup: If a task takes $t$ hours on one processor, the goal is for it to take $t/n$ hours on $n$ processors.
-2. The Coordination Tax: Parallelization doesn’t actually reduce the total work; in fact, it often adds work because the processors must communicate and coordinate with one another.
-3. Amdahl’s Law: This principle reminds us that a program can only go as fast as its most stubborn "serial" part (the tasks that simply cannot be split up). In general, if a calculation takes t hours to run in serial (that is, on a single processing unit, which can be either CPU or GPU or VPU or TPU), it will take at least t/n hours to run on n processing units; this principle is more formally expressed through Amdahl’s law. 
+This repository is intentionally incremental:  
+> **learn → test → understand → apply**
 
-A primary goal of parallelization is to ensure that the actual parallelized runtimes are as close to the ideal runtime of t/n as possible.
+---
 
-These are the types of parallelization:
+## What Is Parallelization?
 
-1. Distributed-Memory (Processes): Runs multiple independent instances of an executable across different cores; offers high scalability but requires more memory as each process maintains its own data copy.
-2. Shared-Memory (Threads): Utilizes multiple threads within a single memory allocation; this is highly memory-efficient but limited to a single node since all threads must access the same RAM.
-3. Vectorization (SIMD): Leverages "Single Instruction, Multiple Data" hardware to perform one operation on multiple data points simultaneously; primarily managed by the compiler to optimize core-level performance.
-4. Heterogeneous Computing: Offloads specific parts of a calculation from the CPU to specialized accelerators like GPUs or FPGAs to increase processing speed. 
+Most strategies for speeding up code focus on **efficiency**:
+- Better algorithms
+- Faster numerical methods
+- Optimized data structures
+- Lower-level languages
 
-Here, I have three folders where I will work on those things in details for my practice: cuda (heterogenous), sharedmem (openMP) and distmem (mpi4py or mpi)
+These approaches reduce the **total amount of work** the computer must perform.
 
+**Parallelization takes a different approach.**
 
+Instead of reducing the workload, it **divides the same workload among multiple processing units**—CPUs, GPUs, or accelerators—so that work is done **simultaneously**.
+
+### A Simple Analogy
+
+Building a house:
+- One worker may take a year.
+- Ten workers—if coordinated well—can finish much faster.
+
+However, coordination itself takes effort.  
+Parallel computing behaves the same way.
+
+---
+
+## Core Principles of Parallel Computing
+
+While the idea of parallelization is simple, its execution is constrained by several fundamental principles.
+
+---
+
+### 1. Ideal Speedup
+
+If a task takes time \( t \) to run on a single processing unit, the ideal runtime on \( n \) processing units is:
+
+\[
+t_{\text{ideal}} = \frac{t}{n}
+\]
+
+This represents the **best-case scenario** and serves as an upper bound on performance.
+
+In practice, this ideal is rarely achieved.
+
+---
+
+### 2. The Coordination Tax
+
+Parallelization does **not** reduce the total amount of work.  
+In fact, it often **adds work**, due to:
+- Communication between processors
+- Synchronization and barriers
+- Memory contention
+- Data movement (especially CPU ↔ GPU)
+
+This overhead is the **price paid** for parallel execution.
+
+---
+
+### 3. Amdahl’s Law (The Fundamental Limit)
+
+Every real program contains some portion that **cannot be parallelized**.
+
+If a fraction \( f \) of the program is strictly serial, the maximum achievable speedup on \( n \) processors is:
+
+\[
+S(n) = \frac{1}{f + \frac{1-f}{n}}
+\]
+
+This means:
+- No matter how many processors are used,
+- The serial portion ultimately limits performance.
+
+> A parallel program is only as fast as its most stubborn serial section.
+
+---
+
+### Practical Goal
+
+The goal of parallelization is **not perfect scaling**, but to ensure that actual runtimes approach the ideal \( t/n \) as closely as possible **within hardware and algorithmic constraints**.
+
+---
+
+## Types of Parallelization Explored Here
+
+This repository focuses on the main parallel paradigms used in modern scientific computing.
+
+---
+
+### 1. Distributed-Memory Parallelism (Processes)
+
+**Concept**
+- Multiple independent processes
+- Each process has its own memory space
+- Communication via message passing
+
+**Typical tools**
+- MPI
+- `mpi4py`
+
+**Strengths**
+- Excellent scalability
+- Works across nodes and clusters
+
+**Tradeoffs**
+- Higher memory usage
+- Explicit communication required
+
+📁 **Folder:** `distmem/`
+
+---
+
+### 2. Shared-Memory Parallelism (Threads)
+
+**Concept**
+- Multiple threads operating within a single memory space
+- All threads share the same RAM
+
+**Typical tools**
+- OpenMP
+- Threading libraries
+
+**Strengths**
+- Memory efficient
+- Fast communication between threads
+
+**Tradeoffs**
+- Limited to a single node
+- Requires careful synchronization to avoid race conditions
+
+📁 **Folder:** `sharedmem/`
+
+---
+
+### 3. Vectorization (SIMD)
+
+**Concept**
+- Single instruction applied to multiple data elements simultaneously
+- Occurs at the CPU core level
+
+**Typical tools**
+- Compiler auto-vectorization
+- NumPy / BLAS
+- Explicit SIMD intrinsics (advanced)
+
+**Strengths**
+- Very high performance
+- Minimal code changes in many cases
+
+**Tradeoffs**
+- Less direct programmer control
+- Sensitive to data layout and memory access patterns
+
+*(Often implicit inside examples rather than a standalone folder.)*
+
+---
+
+### 4. Heterogeneous Computing
+
+**Concept**
+- Offloading computation from CPUs to specialized accelerators
+- GPUs, TPUs, or FPGAs
+
+**Typical tools**
+- CUDA
+- GPU-accelerated Python libraries
+
+**Strengths**
+- Massive parallelism
+- Excellent for dense numerical workloads
+
+**Tradeoffs**
+- Data transfer overhead
+- Hardware-specific programming models
+
+📁 **Folder:** `cuda/`
+
+---
+
+## Repository Structure
+
+```text
+parallelization/
+│
+├── distmem/        # Distributed memory (MPI / mpi4py)
+│
+├── sharedmem/      # Shared memory (OpenMP, threading)
+│
+├── cuda/           # Heterogeneous computing (GPU / CUDA)
+│
+└── README.md
