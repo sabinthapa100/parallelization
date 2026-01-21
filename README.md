@@ -61,9 +61,7 @@ While the idea of parallelization is simple, its execution is constrained by sev
 
 If a task takes time \( t \) to run on a single processing unit, the ideal runtime on \( n \) processing units is:
 
-\[
-t_{\text{ideal}} = \frac{t}{n}
-\]
+$$t_{\text{ideal}} = \frac{t}{n}$$
 
 This represents the **best-case scenario** and serves as an upper bound on performance.
 
@@ -90,9 +88,7 @@ Every real program contains some portion that **cannot be parallelized**.
 
 If a fraction \( f \) of the program is strictly serial, the maximum achievable speedup on \( n \) processors is:
 
-\[
-S(n) = \frac{1}{f + \frac{1-f}{n}}
-\]
+$$S(n) = \frac{1}{f + \frac{1-f}{n}}$$
 
 This means:
 - No matter how many processors are used,
